@@ -1,0 +1,339 @@
+//@version=5
+indicator('Screener 10ema RUS', overlay=true)
+// brmvsrg0
+help = "1-точка входа, 2-все, где 5 выше 10"
+mode = input.int(1, "Mode", minval=1, maxval=2, step=1, tooltip = help)
+rsi_len = input.int(  14, title = "RSI Length",     group = "Indicators")
+rsi_os  = input.float(30, title = "RSI Overbought", group = "Indicators")
+rsi_ob  = input.float(70, title = "RSI Oversold",   group = "Indicators")
+
+col_width = input.float(2, title = "Column Width (%)")
+//scr_numb  = input.int(1, title = "Screen #", tooltip = '1 - rightmost screener', minval = 1)
+scr_numb=1
+/////////////
+// SYMBOLS // 
+
+u01 = input.bool(true,  title = "", group = 'Symbols', inline = 's01')
+u02 = input.bool(true,  title = "", group = 'Symbols', inline = 's02')
+u03 = input.bool(true,  title = "", group = 'Symbols', inline = 's03')
+u04 = input.bool(true,  title = "", group = 'Symbols', inline = 's04')
+u05 = input.bool(true,  title = "", group = 'Symbols', inline = 's05')
+u06 = input.bool(true,  title = "", group = 'Symbols', inline = 's06')
+u07 = input.bool(true,  title = "", group = 'Symbols', inline = 's07')
+u08 = input.bool(true,  title = "", group = 'Symbols', inline = 's08')
+u09 = input.bool(true,  title = "", group = 'Symbols', inline = 's09')
+u10 = input.bool(true,  title = "", group = 'Symbols', inline = 's10')
+u11 = input.bool(true,  title = "", group = 'Symbols', inline = 's11')
+u12 = input.bool(true,  title = "", group = 'Symbols', inline = 's12')
+u13 = input.bool(true,  title = "", group = 'Symbols', inline = 's13')
+u14 = input.bool(true,  title = "", group = 'Symbols', inline = 's14')
+u15 = input.bool(true,  title = "", group = 'Symbols', inline = 's15')
+u16 = input.bool(true,  title = "", group = 'Symbols', inline = 's16')
+u17 = input.bool(true,  title = "", group = 'Symbols', inline = 's17')
+u18 = input.bool(true,  title = "", group = 'Symbols', inline = 's18')
+u19 = input.bool(true,  title = "", group = 'Symbols', inline = 's19')
+u20 = input.bool(true,  title = "", group = 'Symbols', inline = 's20')
+
+
+s01 = input.symbol('LKOH',  group = 'Symbols', inline = 's01')
+s02 = input.symbol('GAZP',  group = 'Symbols', inline = 's02')
+s03 = input.symbol('TGKA',  group = 'Symbols', inline = 's03')
+s04 = input.symbol('NVTK',  group = 'Symbols', inline = 's04')
+s05 = input.symbol('BANE',  group = 'Symbols', inline = 's05')
+s06 = input.symbol('YNDX',  group = 'Symbols', inline = 's06')
+s07 = input.symbol('MGNT',  group = 'Symbols', inline = 's07')
+s08 = input.symbol('OZON',  group = 'Symbols', inline = 's08')
+s09 = input.symbol('TCSG',  group = 'Symbols', inline = 's09')
+s10 = input.symbol('SBER',  group = 'Symbols', inline = 's10')
+s11 = input.symbol('ROSN',  group = 'Symbols', inline = 's11')
+s12 = input.symbol('TATN',  group = 'Symbols', inline = 's12')
+s13 = input.symbol('SNGS',  group = 'Symbols', inline = 's13')
+s14 = input.symbol('PHOR', group = 'Symbols', inline = 's14')
+s15 = input.symbol('PLZL',  group = 'Symbols', inline = 's15')
+s16 = input.symbol('POLY', group = 'Symbols', inline = 's16')
+s17 = input.symbol('MTSS',  group = 'Symbols', inline = 's17')
+s18 = input.symbol('FIVE',  group = 'Symbols', inline = 's18')
+s19 = input.symbol('CHMF',  group = 'Symbols', inline = 's19')
+s20 = input.symbol('MAGN',  group = 'Symbols', inline = 's20')
+
+
+k01 = input.symbol('ALRS',  group = 'Symbols', inline = 'k01')
+k02 = input.symbol('RUAL',  group = 'Symbols', inline = 'k02')
+k03 = input.symbol('ENPG',  group = 'Symbols', inline = 'k03')
+k04 = input.symbol('PIKK',  group = 'Symbols', inline = 'k04')
+k05 = input.symbol('SMLT',  group = 'Symbols', inline = 'k05')
+k06 = input.symbol('VKCO',  group = 'Symbols', inline = 'k06')
+k07 = input.symbol('FIXP',  group = 'Symbols', inline = 'k07')
+k08 = input.symbol('AFKS',  group = 'Symbols', inline = 'k08')
+k09 = input.symbol('DSKY',  group = 'Symbols', inline = 'k09')
+k10 = input.symbol('IRAO',  group = 'Symbols', inline = 'k10')
+k11 = input.symbol('UPRO',  group = 'Symbols', inline = 'k11')
+k12 = input.symbol('LSNGP',  group = 'Symbols', inline = 'k12')
+k13 = input.symbol('KAZT',  group = 'Symbols', inline = 'k13')
+k14 = input.symbol('MTLR', group = 'Symbols', inline = 'k14')
+k15 = input.symbol('RASP',  group = 'Symbols', inline = 'k15')
+k16 = input.symbol('KAZTP', group = 'Symbols', inline = 'k16')
+k17 = input.symbol('MDMG',  group = 'Symbols', inline = 'k17')
+k18 = input.symbol('CIAN',  group = 'Symbols', inline = 'k18')
+k19 = input.symbol('FESH',  group = 'Symbols', inline = 'k19')
+k20 = input.symbol('IMOEX',  group = 'Symbols', inline = 'k20')
+//////////////////
+// CALCULATIONS //
+
+// Get only symbol
+only_symbol(s) => 
+    array.get(str.split(s, ":"), 1)
+
+// screener_func2() =>
+//     // RSI
+//     rsi = ta.rsi(close, rsi_len)
+//     rsi
+// // Security call
+// rsi01 = request.security(s01, timeframe.period, screener_func2())
+
+// rsi20 = request.security(s20, timeframe.period, screener_func2())
+
+// screener_func() =>
+//     stoch =ta.sma(ta.stoch(ta.rsi(close, rsi_len),ta.rsi(close, rsi_len),ta.rsi(close, rsi_len),14),3) 
+//     stoch
+// stoch01 = request.security(s01, timeframe.period, screener_func())
+
+// stoch20 = request.security(s20, timeframe.period, screener_func())
+
+screener_func3() =>
+    // цена пересекает 10ема или 5ема пересекает 10 или  
+   // mom = (ta.crossover(close,ta.ema(close, 10))) or (ta.crossover(close[1],ta.ema(close[1], 10))) or (ta.crossover(ta.ema(close,5),ta.ema(close, 10))) or (ta.crossover(ta.ema(close[1],5),ta.ema(close[1], 10)))
+    //mom = (open<ta.ema(close,10) and close>ta.ema(close,5))
+    switch mode
+        1 => mom = (ta.ema(close,5)>ta.ema(close,10) and ta.ema(close[1],5)>ta.ema(close[1],10)and ta.ema(close[2],5)<ta.ema(close[2],10)) or ta.crossover(ta.ema(close,5),ta.ema(close,10)) or (open<ta.ema(close,10) and close>ta.ema(close,10) and ta.ema(close,5)<ta.ema(close,10))
+        2 => mom = (ta.ema(close,5)>ta.ema(close,10))
+    //mom
+
+mom01 = request.security(s01, timeframe.period, screener_func3())
+mom02 = request.security(s02, timeframe.period, screener_func3())
+mom03 = request.security(s03, timeframe.period, screener_func3())
+mom04 = request.security(s04, timeframe.period, screener_func3())
+mom05 = request.security(s05, timeframe.period, screener_func3())
+mom06 = request.security(s06, timeframe.period, screener_func3())
+mom07 = request.security(s07, timeframe.period, screener_func3())
+mom08 = request.security(s08, timeframe.period, screener_func3())
+mom09 = request.security(s09, timeframe.period, screener_func3())
+mom10 = request.security(s10, timeframe.period, screener_func3())
+mom11 = request.security(s11, timeframe.period, screener_func3())
+mom12 = request.security(s12, timeframe.period, screener_func3())
+mom13 = request.security(s13, timeframe.period, screener_func3())
+mom14 = request.security(s14, timeframe.period, screener_func3())
+mom15 = request.security(s15, timeframe.period, screener_func3())
+mom16 = request.security(s16, timeframe.period, screener_func3())
+mom17 = request.security(s17, timeframe.period, screener_func3())
+mom18 = request.security(s18, timeframe.period, screener_func3())
+mom19 = request.security(s19, timeframe.period, screener_func3())
+mom20 = request.security(s20, timeframe.period, screener_func3())
+
+kmom01 = request.security(k01, timeframe.period, screener_func3())
+kmom02 = request.security(k02, timeframe.period, screener_func3())
+kmom03 = request.security(k03, timeframe.period, screener_func3())
+kmom04 = request.security(k04, timeframe.period, screener_func3())
+kmom05 = request.security(k05, timeframe.period, screener_func3())
+kmom06 = request.security(k06, timeframe.period, screener_func3())
+kmom07 = request.security(k07, timeframe.period, screener_func3())
+kmom08 = request.security(k08, timeframe.period, screener_func3())
+kmom09 = request.security(k09, timeframe.period, screener_func3())
+kmom10 = request.security(k10, timeframe.period, screener_func3())
+kmom11 = request.security(k11, timeframe.period, screener_func3())
+kmom12 = request.security(k12, timeframe.period, screener_func3())
+kmom13 = request.security(k13, timeframe.period, screener_func3())
+kmom14 = request.security(k14, timeframe.period, screener_func3())
+kmom15 = request.security(k15, timeframe.period, screener_func3())
+kmom16 = request.security(k16, timeframe.period, screener_func3())
+kmom17 = request.security(k17, timeframe.period, screener_func3())
+kmom18 = request.security(k18, timeframe.period, screener_func3())
+kmom19 = request.security(k19, timeframe.period, screener_func3())
+kmom20 = request.security(k20, timeframe.period, screener_func3())
+
+//screener_func4() =>
+    // цена выше 10ема
+    //uptrnd = (close > ta.ema(close, 10))
+//    uptrnd = ta.crossover(ta.ema(close,5),ta.ema(close, 10))
+//    uptrnd
+//uptrnd01 = request.security(s01, timeframe.period, screener_func4())
+
+//uptrnd20 = request.security(s20, timeframe.period, screener_func4())
+//////2/////
+// ARRAYS //
+
+s_arr   = array.new_string(0)
+s_arr2   = array.new_string(0)
+u_arr   = array.new_bool(0)
+//rsi_arr = array.new_float(0)
+//stoch_arr = array.new_float(0)
+mom_arr = array.new_bool(0)
+mom_arr2 = array.new_bool(0)
+//uptrnd_arr = array.new_bool(0)
+// Add Symbols 
+array.push(s_arr, only_symbol(s01))
+array.push(s_arr, only_symbol(s02))
+array.push(s_arr, only_symbol(s03))
+array.push(s_arr, only_symbol(s04))
+array.push(s_arr, only_symbol(s05))
+array.push(s_arr, only_symbol(s06))
+array.push(s_arr, only_symbol(s07))
+array.push(s_arr, only_symbol(s08))
+array.push(s_arr, only_symbol(s09))
+array.push(s_arr, only_symbol(s10))
+array.push(s_arr, only_symbol(s11))
+array.push(s_arr, only_symbol(s12))
+array.push(s_arr, only_symbol(s13))
+array.push(s_arr, only_symbol(s14))
+array.push(s_arr, only_symbol(s15))
+array.push(s_arr, only_symbol(s16))
+array.push(s_arr, only_symbol(s17))
+array.push(s_arr, only_symbol(s18))
+array.push(s_arr, only_symbol(s19))
+array.push(s_arr, only_symbol(s20))
+
+array.push(s_arr2, only_symbol(k01))
+array.push(s_arr2, only_symbol(k02))
+array.push(s_arr2, only_symbol(k03))
+array.push(s_arr2, only_symbol(k04))
+array.push(s_arr2, only_symbol(k05))
+array.push(s_arr2, only_symbol(k06))
+array.push(s_arr2, only_symbol(k07))
+array.push(s_arr2, only_symbol(k08))
+array.push(s_arr2, only_symbol(k09))
+array.push(s_arr2, only_symbol(k10))
+array.push(s_arr2, only_symbol(k11))
+array.push(s_arr2, only_symbol(k12))
+array.push(s_arr2, only_symbol(k13))
+array.push(s_arr2, only_symbol(k14))
+array.push(s_arr2, only_symbol(k15))
+array.push(s_arr2, only_symbol(k16))
+array.push(s_arr2, only_symbol(k17))
+array.push(s_arr2, only_symbol(k18))
+array.push(s_arr2, only_symbol(k19))
+array.push(s_arr2, only_symbol(k20))
+
+// FLAGS 
+array.push(u_arr, u01)
+array.push(u_arr, u02)
+array.push(u_arr, u03)
+array.push(u_arr, u04)
+array.push(u_arr, u05)
+array.push(u_arr, u06)
+array.push(u_arr, u07)
+array.push(u_arr, u08)
+array.push(u_arr, u09)
+array.push(u_arr, u10)
+array.push(u_arr, u11)
+array.push(u_arr, u12)
+array.push(u_arr, u13)
+array.push(u_arr, u14)
+array.push(u_arr, u15)
+array.push(u_arr, u16)
+array.push(u_arr, u17)
+array.push(u_arr, u18)
+array.push(u_arr, u19)
+array.push(u_arr, u20)
+
+// RSI 
+// array.push(rsi_arr, rsi01)
+
+// array.push(rsi_arr, rsi20)
+
+// array.push(stoch_arr, stoch01)
+
+// array.push(stoch_arr, stoch20)
+
+array.push(mom_arr, mom01)
+array.push(mom_arr, mom02)
+array.push(mom_arr, mom03)
+array.push(mom_arr, mom04)
+array.push(mom_arr, mom05)
+array.push(mom_arr, mom06)
+array.push(mom_arr, mom07)
+array.push(mom_arr, mom08)
+array.push(mom_arr, mom09)
+array.push(mom_arr, mom10)
+array.push(mom_arr, mom11)
+array.push(mom_arr, mom12)
+array.push(mom_arr, mom13)
+array.push(mom_arr, mom14)
+array.push(mom_arr, mom15)
+array.push(mom_arr, mom16)
+array.push(mom_arr, mom17)
+array.push(mom_arr, mom18)
+array.push(mom_arr, mom19)
+array.push(mom_arr, mom20)
+
+array.push(mom_arr2, kmom01)
+array.push(mom_arr2, kmom02)
+array.push(mom_arr2, kmom03)
+array.push(mom_arr2, kmom04)
+array.push(mom_arr2, kmom05)
+array.push(mom_arr2, kmom06)
+array.push(mom_arr2, kmom07)
+array.push(mom_arr2, kmom08)
+array.push(mom_arr2, kmom09)
+array.push(mom_arr2, kmom10)
+array.push(mom_arr2, kmom11)
+array.push(mom_arr2, kmom12)
+array.push(mom_arr2, kmom13)
+array.push(mom_arr2, kmom14)
+array.push(mom_arr2, kmom15)
+array.push(mom_arr2, kmom16)
+array.push(mom_arr2, kmom17)
+array.push(mom_arr2, kmom18)
+array.push(mom_arr2, kmom19)
+array.push(mom_arr2, kmom20)
+//array.push(uptrnd_arr, uptrnd01)
+//array.push(uptrnd_arr, uptrnd02)
+//array.push(uptrnd_arr, uptrnd03)
+//array.push(uptrnd_arr, uptrnd04)
+//array.push(uptrnd_arr, uptrnd05)
+//array.push(uptrnd_arr, uptrnd06)
+//array.push(uptrnd_arr, uptrnd07)
+//array.push(uptrnd_arr, uptrnd08)
+//array.push(uptrnd_arr, uptrnd09)
+//array.push(uptrnd_arr, uptrnd10)
+//array.push(uptrnd_arr, uptrnd11)
+//array.push(uptrnd_arr, uptrnd12)
+//array.push(uptrnd_arr, uptrnd13)
+//array.push(uptrnd_arr, uptrnd14)
+//array.push(uptrnd_arr, uptrnd15)
+//array.push(uptrnd_arr, uptrnd16)
+//array.push(uptrnd_arr, uptrnd17)
+//array.push(uptrnd_arr, uptrnd18)
+//array.push(uptrnd_arr, uptrnd19)
+//array.push(uptrnd_arr, uptrnd20)
+
+
+///////////
+// PLOTS //
+ema_col = color.black
+var tbl = table.new(position.top_right, 4, 21, frame_color=#151715, frame_width=1, border_width=2, border_color=color.new(color.white, 100))
+heig = 3
+if barstate.islast
+
+    table.cell(tbl, 0, 0, 'Symbol',  width = col_width,height=heig,       text_halign = text.align_center, bgcolor = color.gray, text_color = color.white, text_size = size.small)
+    table.cell(tbl, 1, 0, 'p c 10',     width = col_width,height=heig,     text_halign = text.align_center, bgcolor = color.gray, text_color = color.white, text_size = size.small)
+    table.cell(tbl, 2, 0, 'Symbol',  width = col_width,height=heig,       text_halign = text.align_center, bgcolor = color.gray, text_color = color.white, text_size = size.small)
+    table.cell(tbl, 3, 0, 'p c 10',     width = col_width,height=heig,     text_halign = text.align_center, bgcolor = color.gray, text_color = color.white, text_size = size.small)
+    if (scr_numb > 1)
+        table.cell(tbl, 2, 0,  '',       width = col_width * 2 * (scr_numb - 1),height=heig, text_halign = text.align_center, bgcolor = color.new(color.gray, 100), text_size = size.small)
+    
+
+    
+    for i = 0 to 19
+        if array.get(u_arr, i)
+        
+           
+            mom_col  = array.get(mom_arr, i) == false    ? color.red   : array.get(mom_arr, i) == true ? color.green : #aaaaaa 
+            mom_col2  = array.get(mom_arr2, i) == false    ? color.red   : array.get(mom_arr2, i) == true ? color.green : #aaaaaa 
+            //uptrnd_col =  array.get(uptrnd_arr, i) == false    ? color.red   : array.get(uptrnd_arr, i) == true ? color.green : #aaaaaa 
+            table.cell(tbl, 0, i + 1, array.get(s_arr, i), height=heig ,                       text_halign = text.align_center, bgcolor = color.gray, text_color = color.white, text_size = size.small)
+            //table.cell(tbl, 1, i + 1, str.tostring(array.get(stoch_arr, i), "#.##"),         text_halign = text.align_center, bgcolor = stoch_col,    text_color = color.white, text_size = size.small)
+            //table.cell(tbl, 2, i + 1, str.tostring(array.get(rsi_arr, i), "#.##"),         text_halign = text.align_center, bgcolor = rsi_col,    text_color = color.white, text_size = size.small)
+            table.cell(tbl, 1, i + 1, str.tostring(array.get(mom_arr, i)),height=heig,         text_halign = text.align_center, bgcolor = mom_col,    text_color = color.white, text_size = size.small)
+            
+            table.cell(tbl, 2, i + 1, array.get(s_arr2, i), height=heig ,                       text_halign = text.align_center, bgcolor = color.gray, text_color = color.white, text_size = size.small)
+            table.cell(tbl, 3, i + 1, str.tostring(array.get(mom_arr2, i)),height=heig,         text_halign = text.align_center, bgcolor = mom_col2,    text_color = color.white, text_size = size.small)
